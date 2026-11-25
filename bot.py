@@ -20,7 +20,7 @@ Thread(target=run_flask).start()
 
 
 # 2. Основная логика Telegram-бота
-API_TOKEN = '8131625654:AAFF3tRbUD9Y0YPZMEPKVctFAUJuaddHGE' 
+API_TOKEN = '8131625654:AAFF3tHbu0GY8rYZNtEPKvCtf4U2vAedhGE' 
 URL_ИГРЫ = 'https://github.io' 
 
 bot = telebot.TeleBot(API_TOKEN)
