@@ -3,116 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Nokia 3310 Snake</title>
+    <title>SNAKE VI - Vice City Edition</title>
     <script src="https://telegram.org"></script>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
-            background-color: #1a1a1a;
-            color: #000;
-            font-family: 'Courier New', Courier, monospace;
+            background: radial-gradient(circle, #1a0826 0%, #05010d 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
             overflow: hidden;
             user-select: none;
             -webkit-user-select: none;
         }
-        /* Корпус ретро-телефона */
-        #nokia-body {
-            background: linear-gradient(135s, #3a4454, #2b323f);
-            border: 4px solid #1c2029;
-            border-radius: 35px;
-            padding: 25px 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        /* Главный контейнер в стиле интерфейса GTA 6 */
+        #game-container {
+            background: rgba(15, 5, 25, 0.75);
+            border: 3px solid #00f0ff;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 0 35px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(0, 240, 255, 0.2);
+            backdrop-filter: blur(10px);
+            width: 340px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 320px;
         }
-        /* Монохромный экран */
-        #screen-border {
-            background-color: #cddb9b;
-            border: 8px solid #222;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
-            width: 260px;
-            box-sizing: border-box;
+        /* Неоновый кастомный логотип VI */
+        #logo {
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #ff007f, #00f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        #score-board {
+        #logo span {
+            color: #fff;
+            -webkit-text-fill-color: #fff;
+            font-style: italic;
+            font-size: 32px;
+            text-shadow: 2px 2px #ff007f;
+        }
+        /* Стилизация плашки счета под HUD GTA VI */
+        #hud {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 4px solid #ff007f;
+            padding: 8px 12px;
+            border-radius: 4px;
             font-weight: bold;
-            border-bottom: 2px solid #000;
-            padding-bottom: 4px;
-            margin-bottom: 6px;
+            font-size: 16px;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        #cash {
+            color: #2ecc71;
+            text-shadow: 0 0 5px rgba(46, 204, 113, 0.4);
+        }
+        #screen-wrapper {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
         canvas {
             display: block;
-            background-color: #cddb9b;
+            background: #0d0614;
         }
-        /* Кнопочная панель */
-        .keyboard {
+        /* Кнопки управления — футуристичный неоновый геймпад */
+        .controls {
             display: grid;
-            grid-template-columns: repeat(3, 70px);
+            grid-template-columns: repeat(3, 65px);
             grid-template-rows: repeat(3, 55px);
-            gap: 12px;
-            margin-top: 25px;
+            gap: 10px;
+            margin-top: 20px;
         }
-        .key {
-            background: linear-gradient(180deg, #e0e0e0, #b5b5b5);
-            color: #222;
-            border: 2px solid #666;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 240, 255, 0.4);
+            border-radius: 14px;
+            color: #00f0ff;
+            font-size: 22px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 4px 0 #777;
-            active-transform: translateY(4px);
+            transition: all 0.1s ease;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
         }
-        .key:active {
-            box-shadow: 0 0px 0 #777;
-            transform: translateY(4px);
-            background: #999;
+        .btn:active {
+            background: #ff007f;
+            border-color: #ff007f;
+            color: #fff;
+            box-shadow: 0 0 20px #ff007f;
+            transform: scale(0.95);
         }
-        .key span {
-            font-size: 10px;
-            color: #555;
-            font-weight: normal;
+        .btn.action {
+            border-color: rgba(255, 0, 127, 0.5);
+            color: #ff007f;
+            font-size: 14px;
+            font-weight: bold;
         }
         .empty { visibility: hidden; }
     </style>
 </head>
 <body>
 
-    <div id="nokia-body">
-        <div id="screen-border">
-            <div id="score-board">
-                <span>🐍 SNAKE</span>
-                <span id="scoreText">0000</span>
-            </div>
-            <canvas id="gameCanvas" width="240" height="240"></canvas>
+    <div id="game-container">
+        <div id="logo">Snake <span>VI</span></div>
+        
+        <div id="hud">
+            <span id="location">VICE CITY</span>
+            <span id="cash">$000,000</span>
         </div>
 
-        <!-- Клавиатура Nokia -->
-        <div class="keyboard">
-            <div class="key empty"></div>
-            <div class="key" onclick="pressKey('UP')">2<span>▲</span></div>
-            <div class="key empty"></div>
-            <div class="key" onclick="pressKey('LEFT')">4<span>◀</span></div>
-            <div class="key" onclick="resetGame()">5<span>RESET</span></div>
-            <div class="key" onclick="pressKey('RIGHT')">6<span>▶</span></div>
-            <div class="key empty"></div>
-            <div class="key" onclick="pressKey('DOWN')">8<span>▼</span></div>
-            <div class="key empty"></div>
+        <div id="screen-wrapper">
+            <canvas id="gameCanvas" width="280" height="280"></canvas>
+        </div>
+
+        <!-- Контроллер GTA VI -->
+        <div class="controls">
+            <div class="btn empty"></div>
+            <div class="btn" onclick="press('UP')">▲</div>
+            <div class="btn empty"></div>
+            <div class="btn" onclick="press('LEFT')">◀</div>
+            <div class="btn action" onclick="resetGame()">RESPAWN</div>
+            <div class="btn" onclick="press('RIGHT')">▶</div>
+            <div class="btn empty"></div>
+            <div class="btn" onclick="press('DOWN')">▼</div>
+            <div class="btn empty"></div>
         </div>
     </div>
 
@@ -122,53 +159,59 @@
 
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        const scoreText = document.getElementById("scoreText");
+        const cashDisplay = document.getElementById("cash");
         
-        const grid = 12; // Размер ячейки шкалы
+        const grid = 14;
         let score = 0;
         let gameInterval = null;
 
         let snake = [];
         let dx = grid;
         let dy = 0;
-        let food = {x: 0, y: 0};
-        let nextDirection = 'RIGHT';
+        let food = {x: 0, y: 0, type: 'cash'}; // Типы: 'cash' (зеленый) или 'star' (розовый бонус)
+        let nextDir = 'RIGHT';
 
         function initGame() {
             snake = [
-                {x: grid * 5, y: grid * 10},
-                {x: grid * 4, y: grid * 10},
-                {x: grid * 3, y: grid * 10}
+                {x: grid * 4, y: grid * 8},
+                {x: grid * 3, y: grid * 8},
+                {x: grid * 2, y: grid * 8}
             ];
             dx = grid;
             dy = 0;
-            nextDirection = 'RIGHT';
+            nextDir = 'RIGHT';
             score = 0;
-            updateScoreDisplay();
+            updateHUD();
             spawnFood();
             
             if(gameInterval) clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, 130); // Скорость змейки
+            gameInterval = setInterval(gameLoop, 100); // Динамичная и быстрая скорость 2026
         }
 
         function gameLoop() {
-            applyDirection();
-            
-            if (checkGameOver()) {
+            if (nextDir === 'LEFT' && dx === 0) { dx = -grid; dy = 0; }
+            if (nextDir === 'UP' && dy === 0) { dx = 0; dy = -grid; }
+            if (nextDir === 'RIGHT' && dx === 0) { dx = grid; dy = 0; }
+            if (nextDir === 'DOWN' && dy === 0) { dx = 0; dy = grid; }
+
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+            // Проверка проигрыша (стены или хвост)
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || hitSelf(head)) {
                 clearInterval(gameInterval);
-                alert("GAME OVER! Очки: " + score);
+                tg.HapticFeedback.notificationOccurred('error'); // Вибрация при проигрыше в Telegram
+                alert("WASTED! Вы собрали: $" + score * 100);
                 initGame();
                 return;
             }
 
-            // Логика движения головы
-            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
             snake.unshift(head);
 
-            // Проверка съедения еды
+            // Съедение бонуса
             if (head.x === food.x && head.y === food.y) {
-                score += 10;
-                updateScoreDisplay();
+                tg.HapticFeedback.impactOccurred('medium'); // Легкий виброотклик при съедении
+                score += (food.type === 'star') ? 25 : 10;
+                updateHUD();
                 spawnFood();
             } else {
                 snake.pop();
@@ -178,100 +221,66 @@
         }
 
         function draw() {
-            // Очистка экрана под ретро-цвет
-            ctx.fillStyle = "#cddb9b";
+            // Градиентный неоновый фон самого поля
+            let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGrad.addColorStop(0, '#12071f');
+            bgGrad.addColorStop(1, '#08020e');
+            ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Рисуем рамку игрового поля внутри экрана
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+            // Рисуем сетку на фоне (едва заметную)
+            ctx.strokeStyle = "rgba(0, 240, 255, 0.03)";
+            ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=grid) {
+                ctx.line(i, 0, i, canvas.height);
+                ctx.line(0, i, canvas.width, i);
+            }
 
-            // Рисуем еду (квадратик с пикселем внутри)
-            ctx.fillStyle = "#000";
-            ctx.fillRect(food.x + 1, food.y + 1, grid - 2, grid - 2);
+            // Рисуем неоновую Еду (деньги или звезду розыска)
+            ctx.shadowBlur = 10;
+            if (food.type === 'star') {
+                ctx.fillStyle = '#ff007f';
+                ctx.shadowColor = '#ff007f';
+                // Форма звездочки-ромба
+                ctx.beginPath();
+                ctx.moveTo(food.x + grid/2, food.y);
+                ctx.lineTo(food.x + grid, food.y + grid/2);
+                ctx.lineTo(food.x + grid/2, food.y + grid);
+                ctx.lineTo(food.x, food.y + grid/2);
+                ctx.fill();
+            } else {
+                ctx.fillStyle = '#2ecc71';
+                ctx.shadowColor = '#2ecc71';
+                ctx.fillRect(food.x + 2, food.y + 2, grid - 4, grid - 4);
+            }
 
-            // Рисуем змейку пиксельными блоками
+            // Рисуем кастомную неоновую змейку
             snake.forEach((part, index) => {
-                ctx.fillStyle = "#000";
-                ctx.fillRect(part.x + 1, part.y + 1, grid - 2, grid - 2);
-                // Для реалистичности ретро-экранов делаем небольшие зазоры
-                if(index === 0) {
-                    ctx.fillStyle = "#cddb9b";
-                    ctx.fillRect(part.x + 4, part.y + 4, grid - 8, grid - 8);
+                if (index === 0) {
+                    ctx.fillStyle = '#00f0ff'; // Голова — ярко-циановая
+                    ctx.shadowColor = '#00f0ff';
+                } else {
+                    ctx.fillStyle = '#9b5de5'; // Хвост — фиолетовый Vice City
+                    ctx.shadowColor = '#9b5de5';
                 }
+                ctx.fillRect(part.x + 1, part.y + 1, grid - 2, grid - 2);
             });
+            ctx.shadowBlur = 0; // Сброс размытия
         }
 
         function spawnFood() {
             const cols = canvas.width / grid;
             const rows = canvas.height / grid;
+            food.type = (Math.random() > 0.8) ? 'star' : 'cash'; // 20% шанс на спавн редкой звезды
             
-            // Генерируем случайную позицию, не пересекающуюся со змейкой
             while (true) {
-                let currentFoodX = Math.floor(Math.random() * (cols - 2) + 1) * grid;
-                let currentFoodY = Math.floor(Math.random() * (rows - 2) + 1) * grid;
-                
-                let onSnake = snake.some(part => part.x === currentFoodX && part.y === currentFoodY);
+                let fx = Math.floor(Math.random() * cols) * grid;
+                let fy = Math.floor(Math.random() * rows) * grid;
+                let onSnake = snake.some(p => p.x === fx && p.y === fy);
                 if (!onSnake) {
-                    food.x = currentFoodX;
-                    food.y = currentFoodY;
+                    food.x = fx;
+                    food.y = fy;
                     break;
                 }
             }
         }
-
-        function applyDirection() {
-            if (nextDirection === 'LEFT' && dx === 0) { dx = -grid; dy = 0; }
-            if (nextDirection === 'UP' && dy === 0) { dx = 0; dy = -grid; }
-            if (nextDirection === 'RIGHT' && dx === 0) { dx = grid; dy = 0; }
-            if (nextDirection === 'DOWN' && dy === 0) { dx = 0; dy = grid; }
-        }
-
-        function pressKey(dir) {
-            const goingUp = dy === -grid;
-            const goingDown = dy === grid;
-            const goingRight = dx === grid;
-            const goingLeft = dx === -grid;
-
-            if (dir === 'LEFT' && !goingRight) nextDirection = 'LEFT';
-            if (dir === 'UP' && !goingDown) nextDirection = 'UP';
-            if (dir === 'RIGHT' && !goingLeft) nextDirection = 'RIGHT';
-            if (dir === 'DOWN' && !goingUp) nextDirection = 'DOWN';
-        }
-
-        function checkGameOver() {
-            const head = snake[0];
-            // Столкновение со стенами
-            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
-                return true;
-            }
-            // Столкновение с собственным хвостом
-            for (let i = 1; i < snake.length; i++) {
-                if (snake[i].x === head.x && snake[i].y === head.y) return true;
-            }
-            return false;
-        }
-
-        function updateScoreDisplay() {
-            scoreText.innerText = String(score).padStart(4, '0');
-        }
-
-        function resetGame() {
-            initGame();
-        }
-
-        // Управление с клавиатуры компьютера
-        document.addEventListener("keydown", event => {
-            if (event.key === "ArrowLeft" || event.key === "4") pressKey('LEFT');
-            if (event.key === "ArrowUp" || event.key === "2") pressKey('UP');
-            if (event.key === "ArrowRight" || event.key === "6") pressKey('RIGHT');
-            if (event.key === "ArrowDown" || event.key === "8") pressKey('DOWN');
-            if (event.key === "5") resetGame();
-        });
-
-        // Первый запуск при загрузке страницы
-        initGame();
-    </script>
-</body>
-</html>
