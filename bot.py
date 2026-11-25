@@ -1,10 +1,27 @@
+import os
+from threading import Thread
+from flask import Flask
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
-# Сюда вставьте ваш токен, который вы брали в @BotFather
-API_TOKEN = '8131625654:AAFF3tHbu0GY8rYZNtEPKvCtf4U2vAedhGE' 
+# 1. Создаем фоновый веб-сервер для хостинга Render
+app = Flask('')
 
-# Ваша ссылка на игру в GitHub Pages
+@app.route('/')
+def home():
+    return "Бот работает и порт активен!"
+
+def run_flask():
+    # Render автоматически передает порт в переменные окружения, берем его или ставим 8080
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+# Запускаем веб-сервер в отдельном потоке
+Thread(target=run_flask).start()
+
+
+# 2. Основная логика Telegram-бота
+API_TOKEN = '8131625654:AAFF3tHbu0GY8rYZNtEPKvCtf4U2vAedhGE' 
 URL_ИГРЫ = 'https://github.io' 
 
 bot = telebot.TeleBot(API_TOKEN)
@@ -22,5 +39,5 @@ def send_welcome(message):
         reply_markup=markup
     )
 
-print("Бот успешно запущен на Render!")
+print("Бот и веб-сервер успешно запущены!")
 bot.infinity_polling()
