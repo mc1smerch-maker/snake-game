@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SNAKE VI - Vice City Edition</title>
+    <title>SNAKE VI</title>
     <script src="https://telegram.org"></script>
     <style>
         * {
@@ -12,9 +12,9 @@
             padding: 0;
         }
         body {
-            background: radial-gradient(circle, #1a0826 0%, #05010d 100%);
+            background-color: #0b0314;
             color: #fff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -24,102 +24,80 @@
             user-select: none;
             -webkit-user-select: none;
         }
-        /* Главный контейнер в стиле интерфейса GTA 6 */
         #game-container {
-            background: rgba(15, 5, 25, 0.75);
+            background-color: #140727;
             border: 3px solid #00f0ff;
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 0 35px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(0, 240, 255, 0.2);
-            backdrop-filter: blur(10px);
-            width: 340px;
+            border-radius: 20px;
+            padding: 15px;
+            width: 320px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-        /* Неоновый кастомный логотип VI */
         #logo {
-            font-size: 28px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: linear-gradient(45deg, #ff007f, #00f0ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+            font-size: 24px;
+            font-weight: bold;
+            color: #00f0ff;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         #logo span {
-            color: #fff;
-            -webkit-text-fill-color: #fff;
-            font-style: italic;
-            font-size: 32px;
-            text-shadow: 2px 2px #ff007f;
+            color: #ff007f;
         }
-        /* Стилизация плашки счета под HUD GTA VI */
         #hud {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            border-left: 4px solid #ff007f;
+            background-color: #000;
             padding: 8px 12px;
-            border-radius: 4px;
-            font-weight: bold;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 4px solid #ff007f;
+            font-family: monospace;
             font-size: 16px;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         #cash {
             color: #2ecc71;
-            text-shadow: 0 0 5px rgba(46, 204, 113, 0.4);
+            font-weight: bold;
         }
-        #screen-wrapper {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        #canvas-holder {
+            border: 2px solid #ff007f;
+            background-color: #05010a;
+            line-height: 0;
         }
         canvas {
             display: block;
-            background: #0d0614;
         }
-        /* Кнопки управления — футуристичный неоновый геймпад */
+        /* Кнопки управления без лишней анимации */
         .controls {
             display: grid;
             grid-template-columns: repeat(3, 65px);
             grid-template-rows: repeat(3, 55px);
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
         }
         .btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(0, 240, 255, 0.4);
-            border-radius: 14px;
+            background-color: #220b3d;
+            border: 2px solid #00f0ff;
+            border-radius: 12px;
             color: #00f0ff;
-            font-size: 22px;
+            font-size: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.1s ease;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
         }
         .btn:active {
-            background: #ff007f;
+            background-color: #ff007f;
             border-color: #ff007f;
             color: #fff;
-            box-shadow: 0 0 20px #ff007f;
-            transform: scale(0.95);
         }
         .btn.action {
-            border-color: rgba(255, 0, 127, 0.5);
+            border-color: #ff007f;
             color: #ff007f;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
         }
         .empty { visibility: hidden; }
@@ -128,24 +106,23 @@
 <body>
 
     <div id="game-container">
-        <div id="logo">Snake <span>VI</span></div>
+        <div id="logo">SNAKE <span>VI</span></div>
         
         <div id="hud">
-            <span id="location">VICE CITY</span>
-            <span id="cash">$000,000</span>
+            <span>VICE CITY</span>
+            <span id="cash">$0</span>
         </div>
 
-        <div id="screen-wrapper">
-            <canvas id="gameCanvas" width="280" height="280"></canvas>
+        <div id="canvas-holder">
+            <canvas id="gameCanvas" width="260" height="260"></canvas>
         </div>
 
-        <!-- Контроллер GTA VI -->
         <div class="controls">
             <div class="btn empty"></div>
             <div class="btn" onclick="press('UP')">▲</div>
             <div class="btn empty"></div>
             <div class="btn" onclick="press('LEFT')">◀</div>
-            <div class="btn action" onclick="resetGame()">RESPAWN</div>
+            <div class="btn action" onclick="resetGame()">START</div>
             <div class="btn" onclick="press('RIGHT')">▶</div>
             <div class="btn empty"></div>
             <div class="btn" onclick="press('DOWN')">▼</div>
@@ -154,28 +131,30 @@
     </div>
 
     <script>
+        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        if (tg) tg.expand();
 
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const cashDisplay = document.getElementById("cash");
         
-        const grid = 14;
+        const grid = 13; // Размер клетки (260 / 13 = 20 клеток по горизонтали и вертикали)
         let score = 0;
         let gameInterval = null;
 
         let snake = [];
         let dx = grid;
         let dy = 0;
-        let food = {x: 0, y: 0, type: 'cash'}; // Типы: 'cash' (зеленый) или 'star' (розовый бонус)
+        let food = {x: 0, y: 0};
         let nextDir = 'RIGHT';
 
         function initGame() {
+            // Начальные три блока змейки по центру поля
             snake = [
-                {x: grid * 4, y: grid * 8},
-                {x: grid * 3, y: grid * 8},
-                {x: grid * 2, y: grid * 8}
+                {x: grid * 7, y: grid * 10},
+                {x: grid * 6, y: grid * 10},
+                {x: grid * 5, y: grid * 10}
             ];
             dx = grid;
             dy = 0;
@@ -184,36 +163,40 @@
             updateHUD();
             spawnFood();
             
-            if(gameInterval) clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, 100); // Динамичная и быстрая скорость 2026
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, 140); // Стабильная скорость без просадок
         }
 
         function gameLoop() {
+            // Применяем направление движения
             if (nextDir === 'LEFT' && dx === 0) { dx = -grid; dy = 0; }
             if (nextDir === 'UP' && dy === 0) { dx = 0; dy = -grid; }
             if (nextDir === 'RIGHT' && dx === 0) { dx = grid; dy = 0; }
             if (nextDir === 'DOWN' && dy === 0) { dx = 0; dy = grid; }
 
+            // Расчет позиции новой головы
             const head = {x: snake[0].x + dx, y: snake[0].y + dy};
 
-            // Проверка проигрыша (стены или хвост)
+            // Проверка столкновения со стенами или хвостом
             if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || hitSelf(head)) {
                 clearInterval(gameInterval);
-                tg.HapticFeedback.notificationOccurred('error'); // Вибрация при проигрыше в Telegram
-                alert("WASTED! Вы собрали: $" + score * 100);
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                alert("WASTED! Вы заработали: $" + score * 100);
                 initGame();
                 return;
             }
 
+            // Добавляем голову в начало массива
             snake.unshift(head);
 
-            // Съедение бонуса
+            // Проверка: съели ли еду (деньги)
             if (head.x === food.x && head.y === food.y) {
-                tg.HapticFeedback.impactOccurred('medium'); // Легкий виброотклик при съедении
-                score += (food.type === 'star') ? 25 : 10;
+                score += 10;
                 updateHUD();
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
                 spawnFood();
             } else {
+                // Если еду не съели, удаляем хвост, создавая эффект движения
                 snake.pop();
             }
 
@@ -221,61 +204,34 @@
         }
 
         function draw() {
-            // Градиентный неоновый фон самого поля
-            let bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            bgGrad.addColorStop(0, '#12071f');
-            bgGrad.addColorStop(1, '#08020e');
-            ctx.fillStyle = bgGrad;
+            // Очистка поля — сплошной темный цвет
+            ctx.fillStyle = "#05010a";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Рисуем сетку на фоне (едва заметную)
-            ctx.strokeStyle = "rgba(0, 240, 255, 0.03)";
-            ctx.lineWidth = 1;
-            for(let i=0; i<canvas.width; i+=grid) {
-                ctx.line(i, 0, i, canvas.height);
-                ctx.line(0, i, canvas.width, i);
-            }
+            // Рисуем Еду — яркий зеленый квадрат (деньги)
+            ctx.fillStyle = "#2ecc71";
+            ctx.fillRect(food.x + 1, food.y + 1, grid - 2, grid - 2);
 
-            // Рисуем неоновую Еду (деньги или звезду розыска)
-            ctx.shadowBlur = 10;
-            if (food.type === 'star') {
-                ctx.fillStyle = '#ff007f';
-                ctx.shadowColor = '#ff007f';
-                // Форма звездочки-ромба
-                ctx.beginPath();
-                ctx.moveTo(food.x + grid/2, food.y);
-                ctx.lineTo(food.x + grid, food.y + grid/2);
-                ctx.lineTo(food.x + grid/2, food.y + grid);
-                ctx.lineTo(food.x, food.y + grid/2);
-                ctx.fill();
-            } else {
-                ctx.fillStyle = '#2ecc71';
-                ctx.shadowColor = '#2ecc71';
-                ctx.fillRect(food.x + 2, food.y + 2, grid - 4, grid - 4);
-            }
-
-            // Рисуем кастомную неоновую змейку
+            // Рисуем Змейку — сплошные блоки без размытия
             snake.forEach((part, index) => {
                 if (index === 0) {
-                    ctx.fillStyle = '#00f0ff'; // Голова — ярко-циановая
-                    ctx.shadowColor = '#00f0ff';
+                    ctx.fillStyle = "#00f0ff"; // Голова — неоновый голубой
                 } else {
-                    ctx.fillStyle = '#9b5de5'; // Хвост — фиолетовый Vice City
-                    ctx.shadowColor = '#9b5de5';
+                    ctx.fillStyle = "#ff007f"; // Тело — неоновый розовый
                 }
                 ctx.fillRect(part.x + 1, part.y + 1, grid - 2, grid - 2);
             });
-            ctx.shadowBlur = 0; // Сброс размытия
         }
 
         function spawnFood() {
             const cols = canvas.width / grid;
             const rows = canvas.height / grid;
-            food.type = (Math.random() > 0.8) ? 'star' : 'cash'; // 20% шанс на спавн редкой звезды
             
             while (true) {
                 let fx = Math.floor(Math.random() * cols) * grid;
                 let fy = Math.floor(Math.random() * rows) * grid;
+                
+                // Проверяем, чтобы еда не появилась на теле змейки
                 let onSnake = snake.some(p => p.x === fx && p.y === fy);
                 if (!onSnake) {
                     food.x = fx;
@@ -284,3 +240,36 @@
                 }
             }
         }
+
+        function hitSelf(head) {
+            return snake.some((p, i) => i !== 0 && p.x === head.x && p.y === head.y);
+        }
+
+        function press(dir) {
+            if (dir === 'LEFT' && dx === 0) nextDir = 'LEFT';
+            if (dir === 'UP' && dy === 0) nextDir = 'UP';
+            if (dir === 'RIGHT' && dx === 0) nextDir = 'RIGHT';
+            if (dir === 'DOWN' && dy === 0) nextDir = 'DOWN';
+        }
+
+        function updateHUD() {
+            cashDisplay.innerText = "$" + (score * 100);
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // Кнопки клавиатуры ПК для тестов
+        document.addEventListener("keydown", e => {
+            if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") press('LEFT');
+            if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") press('UP');
+            if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") press('RIGHT');
+            if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") press('DOWN');
+        });
+
+        // Запуск первой игры при открытии приложения
+        initGame();
+    </script>
+</body>
+</html>
