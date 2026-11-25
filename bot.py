@@ -2,7 +2,7 @@ import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
 # Сюда вставьте ваш токен, который вы брали в @BotFather
-API_TOKEN = 'ВАШ_ТОКЕН_БОТА' 
+API_TOKEN = '8131625654:AAFF3tHbu0GY8rYZNtEPKvCtf4U2vAedhGE' 
 
 # Ваша ссылка на игру в GitHub Pages
 URL_ИГРЫ = 'https://github.io' 
