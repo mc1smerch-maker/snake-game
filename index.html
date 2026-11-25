@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Retro Snake 2000</title>
+    <title>Nokia 3310 Snake</title>
     <script src="https://telegram.org"></script>
     <style>
         body {
-            background-color: #222;
+            background-color: #1a1a1a;
             color: #000;
-            font-family: monospace;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -17,176 +17,261 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        /* Стилизация под экран старой Нокии */
-        #phone-screen {
-            background-color: #8b956d; /* Тот самый зелено-серый цвет */
-            border: 10px solid #444;
-            border-radius: 5px;
+        /* Корпус ретро-телефона */
+        #nokia-body {
+            background: linear-gradient(135s, #3a4454, #2b323f);
+            border: 4px solid #1c2029;
+            border-radius: 35px;
+            padding: 25px 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 320px;
+        }
+        /* Монохромный экран */
+        #screen-border {
+            background-color: #cddb9b;
+            border: 8px solid #222;
+            border-radius: 10px;
             padding: 10px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+            width: 260px;
+            box-sizing: border-box;
+        }
+        #score-board {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
         }
         canvas {
-            background-color: #8b956d;
-            border: 2px solid #000;
+            display: block;
+            background-color: #cddb9b;
         }
-        #score {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-align: right;
-        }
-        /* Кнопки управления на экране */
-        .controls {
+        /* Кнопочная панель */
+        .keyboard {
             display: grid;
-            grid-template-columns: repeat(3, 60px);
-            grid-template-rows: repeat(3, 60px);
-            gap: 10px;
-            margin-top: 20px;
+            grid-template-columns: repeat(3, 70px);
+            grid-template-rows: repeat(3, 55px);
+            gap: 12px;
+            margin-top: 25px;
         }
-        .btn {
-            background-color: #444;
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            font-size: 20px;
+        .key {
+            background: linear-gradient(180deg, #e0e0e0, #b5b5b5);
+            color: #222;
+            border: 2px solid #666;
+            border-radius: 10px;
+            font-size: 18px;
             font-weight: bold;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            user-select: none;
+            box-shadow: 0 4px 0 #777;
+            active-transform: translateY(4px);
         }
-        .btn:active { background-color: #666; }
+        .key:active {
+            box-shadow: 0 0px 0 #777;
+            transform: translateY(4px);
+            background: #999;
+        }
+        .key span {
+            font-size: 10px;
+            color: #555;
+            font-weight: normal;
+        }
         .empty { visibility: hidden; }
     </style>
 </head>
 <body>
 
-    <div id="phone-screen">
-        <div id="score">Score: 0</div>
-        <canvas id="gameCanvas" width="300" height="300"></canvas>
-    </div>
+    <div id="nokia-body">
+        <div id="screen-border">
+            <div id="score-board">
+                <span>🐍 SNAKE</span>
+                <span id="scoreText">0000</span>
+            </div>
+            <canvas id="gameCanvas" width="240" height="240"></canvas>
+        </div>
 
-    <!-- Пульт управления для сенсорных экранов телефонов -->
-    <div class="controls">
-        <div class="btn empty"></div>
-        <div class="btn" onclick="changeDirection('UP')">▲</div>
-        <div class="btn empty"></div>
-        <div class="btn" onclick="changeDirection('LEFT')">◀</div>
-        <div class="btn empty"></div>
-        <div class="btn" onclick="changeDirection('RIGHT')">▶</div>
-        <div class="btn empty"></div>
-        <div class="btn" onclick="changeDirection('DOWN')">▼</div>
-        <div class="btn empty"></div>
+        <!-- Клавиатура Nokia -->
+        <div class="keyboard">
+            <div class="key empty"></div>
+            <div class="key" onclick="pressKey('UP')">2<span>▲</span></div>
+            <div class="key empty"></div>
+            <div class="key" onclick="pressKey('LEFT')">4<span>◀</span></div>
+            <div class="key" onclick="resetGame()">5<span>RESET</span></div>
+            <div class="key" onclick="pressKey('RIGHT')">6<span>▶</span></div>
+            <div class="key empty"></div>
+            <div class="key" onclick="pressKey('DOWN')">8<span>▼</span></div>
+            <div class="key empty"></div>
+        </div>
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть на весь экран
+        tg.expand();
 
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        const grid = 15;
+        const scoreText = document.getElementById("scoreText");
+        
+        const grid = 12; // Размер ячейки шкалы
         let score = 0;
+        let gameInterval = null;
 
-        let snake = [{x: 150, y: 150}, {x: 135, y: 150}, {x: 120, y: 150}];
+        let snake = [];
         let dx = grid;
         let dy = 0;
-
         let food = {x: 0, y: 0};
-        generateFood();
+        let nextDirection = 'RIGHT';
 
-        function main() {
-            if (hasGameEnded()) {
-                alert("Игра окончена! Ваши очки: " + score);
-                resetGame();
+        function initGame() {
+            snake = [
+                {x: grid * 5, y: grid * 10},
+                {x: grid * 4, y: grid * 10},
+                {x: grid * 3, y: grid * 10}
+            ];
+            dx = grid;
+            dy = 0;
+            nextDirection = 'RIGHT';
+            score = 0;
+            updateScoreDisplay();
+            spawnFood();
+            
+            if(gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, 130); // Скорость змейки
+        }
+
+        function gameLoop() {
+            applyDirection();
+            
+            if (checkGameOver()) {
+                clearInterval(gameInterval);
+                alert("GAME OVER! Очки: " + score);
+                initGame();
+                return;
             }
-            setTimeout(function onTick() {
-                clearCanvas();
-                drawFood();
-                moveSnake();
-                drawSnake();
-                main();
-            }, 120); // Скорость игры (меньше число = быстрее)
-        }
 
-        function clearCanvas() {
-            ctx.fillStyle = "#8b956d";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function drawSnake() {
-            snake.forEach(part => {
-                ctx.fillStyle = '#000';
-                ctx.fillRect(part.x, part.y, grid - 2, grid - 2);
-            });
-        }
-
-        function moveSnake() {
+            // Логика движения головы
             const head = {x: snake[0].x + dx, y: snake[0].y + dy};
             snake.unshift(head);
-            const hasEatenFood = snake[0].x === food.x && snake[0].y === food.y;
-            if (hasEatenFood) {
+
+            // Проверка съедения еды
+            if (head.x === food.x && head.y === food.y) {
                 score += 10;
-                document.getElementById('score').innerText = "Score: " + score;
-                generateFood();
+                updateScoreDisplay();
+                spawnFood();
             } else {
                 snake.pop();
             }
+
+            draw();
         }
 
-        function generateFood() {
-            food.x = Math.floor(Math.random() * (canvas.width / grid)) * grid;
-            food.y = Math.floor(Math.random() * (canvas.height / grid)) * grid;
+        function draw() {
+            // Очистка экрана под ретро-цвет
+            ctx.fillStyle = "#cddb9b";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Рисуем рамку игрового поля внутри экрана
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+            // Рисуем еду (квадратик с пикселем внутри)
+            ctx.fillStyle = "#000";
+            ctx.fillRect(food.x + 1, food.y + 1, grid - 2, grid - 2);
+
+            // Рисуем змейку пиксельными блоками
+            snake.forEach((part, index) => {
+                ctx.fillStyle = "#000";
+                ctx.fillRect(part.x + 1, part.y + 1, grid - 2, grid - 2);
+                // Для реалистичности ретро-экранов делаем небольшие зазоры
+                if(index === 0) {
+                    ctx.fillStyle = "#cddb9b";
+                    ctx.fillRect(part.x + 4, part.y + 4, grid - 8, grid - 8);
+                }
+            });
         }
 
-        function drawFood() {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(food.x, food.y, grid - 2, grid - 2);
-        }
-
-        function hasGameEnded() {
-            for (let i = 4; i < snake.length; i++) {
-                if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
+        function spawnFood() {
+            const cols = canvas.width / grid;
+            const rows = canvas.height / grid;
+            
+            // Генерируем случайную позицию, не пересекающуюся со змейкой
+            while (true) {
+                let currentFoodX = Math.floor(Math.random() * (cols - 2) + 1) * grid;
+                let currentFoodY = Math.floor(Math.random() * (rows - 2) + 1) * grid;
+                
+                let onSnake = snake.some(part => part.x === currentFoodX && part.y === currentFoodY);
+                if (!onSnake) {
+                    food.x = currentFoodX;
+                    food.y = currentFoodY;
+                    break;
+                }
             }
-            const hitLeftWall = snake[0].x < 0;
-            const hitRightWall = snake[0].x >= canvas.width;
-            const hitToptWall = snake[0].x < 0;
-            const hitTopWall = snake[0].y < 0;
-            const hitBottomWall = snake[0].y >= canvas.height;
-            return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
         }
 
-        function changeDirection(dir) {
+        function applyDirection() {
+            if (nextDirection === 'LEFT' && dx === 0) { dx = -grid; dy = 0; }
+            if (nextDirection === 'UP' && dy === 0) { dx = 0; dy = -grid; }
+            if (nextDirection === 'RIGHT' && dx === 0) { dx = grid; dy = 0; }
+            if (nextDirection === 'DOWN' && dy === 0) { dx = 0; dy = grid; }
+        }
+
+        function pressKey(dir) {
             const goingUp = dy === -grid;
             const goingDown = dy === grid;
             const goingRight = dx === grid;
             const goingLeft = dx === -grid;
 
-            if (dir === 'LEFT' && !goingRight) { dx = -grid; dy = 0; }
-            if (dir === 'UP' && !goingDown) { dx = 0; dy = -grid; }
-            if (dir === 'RIGHT' && !goingLeft) { dx = grid; dy = 0; }
-            if (dir === 'DOWN' && !goingUp) { dx = 0; dy = grid; }
+            if (dir === 'LEFT' && !goingRight) nextDirection = 'LEFT';
+            if (dir === 'UP' && !goingDown) nextDirection = 'UP';
+            if (dir === 'RIGHT' && !goingLeft) nextDirection = 'RIGHT';
+            if (dir === 'DOWN' && !goingUp) nextDirection = 'DOWN';
         }
 
-        // Управление с клавиатуры ПК
-        document.addEventListener("keydown", event => {
-            if (event.keyCode === 37) changeDirection('LEFT');
-            if (event.keyCode === 38) changeDirection('UP');
-            if (event.keyCode === 39) changeDirection('RIGHT');
-            if (event.keyCode === 40) changeDirection('DOWN');
-        });
+        function checkGameOver() {
+            const head = snake[0];
+            // Столкновение со стенами
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                return true;
+            }
+            // Столкновение с собственным хвостом
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) return true;
+            }
+            return false;
+        }
+
+        function updateScoreDisplay() {
+            scoreText.innerText = String(score).padStart(4, '0');
+        }
 
         function resetGame() {
-            snake = [{x: 150, y: 150}, {x: 135, y: 150}, {x: 120, y: 150}];
-            dx = grid; dy = 0; score = 0;
-            document.getElementById('score').innerText = "Score: " + score;
-            generateFood();
+            initGame();
         }
 
-        main();
+        // Управление с клавиатуры компьютера
+        document.addEventListener("keydown", event => {
+            if (event.key === "ArrowLeft" || event.key === "4") pressKey('LEFT');
+            if (event.key === "ArrowUp" || event.key === "2") pressKey('UP');
+            if (event.key === "ArrowRight" || event.key === "6") pressKey('RIGHT');
+            if (event.key === "ArrowDown" || event.key === "8") pressKey('DOWN');
+            if (event.key === "5") resetGame();
+        });
+
+        // Первый запуск при загрузке страницы
+        initGame();
     </script>
 </body>
 </html>
