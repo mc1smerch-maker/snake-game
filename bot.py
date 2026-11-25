@@ -4,24 +4,23 @@ from flask import Flask
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
-# 1. Создаем фоновый веб-сервер для хостинга Render
+# 1. Фоновый веб-сервер для хостинга Render, чтобы бот не отключался
 app = Flask('')
 
 @app.route('/')
 def home():
-    return "Бот работает и порт активен!"
+    return "Бот и веб-сервер успешно запущены!"
 
 def run_flask():
-    # Render автоматически передает порт в переменные окружения, берем его или ставим 8080
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
-# Запускаем веб-сервер в отдельном потоке
+# Запускаем сервер в фоновом потоке
 Thread(target=run_flask).start()
 
 
 # 2. Основная логика Telegram-бота
-API_TOKEN = '8131625654:AAFF3tHbu0GY8rYZNtEPKvCtf4U2vAedhGE' 
+API_TOKEN = '8131625654:AAFF3tRbUD9Y0YPZMEPKVctFAUJuaddHGE' 
 URL_ИГРЫ = 'https://github.io' 
 
 bot = telebot.TeleBot(API_TOKEN)
@@ -30,14 +29,14 @@ bot = telebot.TeleBot(API_TOKEN)
 def send_welcome(message):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     web_app = WebAppInfo(URL_ИГРЫ)
-    button = KeyboardButton(text="🟢 Играть в Змейку 2000!", web_app=web_app)
+    button = KeyboardButton(text="🟢 Играть в Змейку VI!", web_app=web_app)
     markup.add(button)
     
     bot.send_message(
         message.chat.id, 
-        "Привет! Нажми на кнопку ниже, чтобы запустить легендарную ретро-змейку! 🐍📱", 
+        "Привет! Нажми на кнопку ниже, чтобы запустить мега-крутую змейку в стиле GTA VI! 🐍🌴🏎️", 
         reply_markup=markup
     )
 
-print("Бот и веб-сервер успешно запущены!")
+print("Бот успешно запущен на хостинге!")
 bot.infinity_polling()
